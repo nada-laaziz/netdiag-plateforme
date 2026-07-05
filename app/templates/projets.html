@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>NetDiag - Mes projets</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="page-container">
+        <div class="topbar">
+            <h1>Mes projets</h1>
+            <a href="{{ url_for('logout') }}">Déconnexion</a>
+        </div>
+
+        <a href="{{ url_for('nouveau_projet') }}" class="btn-nouveau">+ Nouveau projet</a>
+
+        <div class="liste-projets">
+            {% if projets %}
+                {% for projet in projets %}
+                    <div class="carte-projet">
+                        <h3>{{ projet.nom }}</h3>
+                        <p>{{ projet.description }}</p>
+                        <a href="{{ url_for('modifier_projet', id=projet.id) }}">Modifier</a>
+                        &nbsp;|&nbsp;
+                        <form method="POST" action="{{ url_for('supprimer_projet', id=projet.id) }}" style="display:inline;" onsubmit="return confirm('Supprimer ce projet ?');">
+                            <button type="submit" class="lien-danger">Supprimer</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Vous n'avez encore aucun projet. Créez-en un pour commencer.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</body>
+</html>

@@ -10,7 +10,7 @@ def create_app():
 
     db.init_app(app)
 
-    from app.models import Utilisateur
+    from app.models import Utilisateur, Projet
 
     with app.app_context():
         db.create_all()
@@ -62,6 +62,61 @@ def create_app():
     def projets():
         if 'utilisateur_id' not in session:
             return redirect(url_for('login'))
-        return "Page des projets (à construire au module 2)"
 
+        utilisateur_id_connecte = session['utilisateur_id']
+        liste_projets = Projet.query.filter_by(id_utilisateur=utilisateur_id_connecte).all()
+
+        return render_template('projets.html', projets=liste_projets)
+    @app.route('/projets/nouveau', methods=['GET', 'POST'])
+    def nouveau_projet():
+        if 'utilisateur_id' not in session:
+            return redirect(url_for('login'))
+
+        if request.method == 'POST':
+            nom = request.form.get('nom')
+            description = request.form.get('description')
+            utilisateur_id_connecte = session['utilisateur_id']
+
+            nouveau = Projet(
+                nom=nom,
+                description=description,
+                id_utilisateur=utilisateur_id_connecte
+            )
+            db.session.add(nouveau)
+            db.session.commit()
+
+            return redirect(url_for('projets'))
+
+        return render_template('nouveau_projet.html')
+    @app.route('/projets/<int:id>/modifier', methods=['GET', 'POST'])
+    def modifier_projet(id):
+        if 'utilisateur_id' not in session:
+            return redirect(url_for('login'))
+
+        projet = Projet.query.get_or_404(id)
+
+        if projet.id_utilisateur != session['utilisateur_id']:
+            return redirect(url_for('projets'))
+
+        if request.method == 'POST':
+            projet.nom = request.form.get('nom')
+            projet.description = request.form.get('description')
+            db.session.commit()
+            return redirect(url_for('projets'))
+
+        return render_template('nouveau_projet.html', projet=projet)
+
+    @app.route('/projets/<int:id>/supprimer', methods=['POST'])
+    def supprimer_projet(id):
+        if 'utilisateur_id' not in session:
+            return redirect(url_for('login'))
+
+        projet = Projet.query.get_or_404(id)
+
+        if projet.id_utilisateur != session['utilisateur_id']:
+            return redirect(url_for('projets'))
+
+        db.session.delete(projet)
+        db.session.commit()
+        return redirect(url_for('projets'))
     return app
