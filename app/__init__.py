@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
+import math
 
 db = SQLAlchemy()
 
@@ -196,4 +197,32 @@ def create_app():
         db.session.delete(equipement)
         db.session.commit()
         return redirect(url_for('equipements_projet', id_projet=id_projet))
+    @app.route('/projets/<int:id_projet>/topologie')
+    def topologie_projet(id_projet):
+        if 'utilisateur_id' not in session:
+            return redirect(url_for('login'))
+
+        projet = Projet.query.get_or_404(id_projet)
+
+        if projet.id_utilisateur != session['utilisateur_id']:
+            return redirect(url_for('projets'))
+
+        liste_equipements = Equipement.query.filter_by(id_projet=id_projet).all()
+
+        equipements_positions = []
+        nombre = len(liste_equipements)
+
+        for index, eq in enumerate(liste_equipements):
+            angle = (index * 360 / nombre) * (math.pi / 180)
+            x = 300 + 180 * math.cos(angle)
+            y = 250 + 180 * math.sin(angle)
+
+            equipements_positions.append({
+                'nom': eq.nom,
+                'ip': eq.adresse_ip or '',
+                'x': round(x),
+                'y': round(y)
+            })
+
+        return render_template('topologie.html', projet=projet, equipements_positions=equipements_positions)
     return app
