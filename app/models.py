@@ -25,3 +25,17 @@ class Projet(db.Model):
     id_utilisateur = db.Column(db.Integer, db.ForeignKey('utilisateurs.id'), nullable=False)
 
     utilisateur = db.relationship('Utilisateur', backref='projets')
+class Equipement(db.Model):
+    __tablename__ = 'equipements'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(150), nullable=False)
+    type = db.Column(db.String(100), nullable=True)
+    adresse_ip = db.Column(db.String(50), nullable=True)
+    adresse_mac = db.Column(db.String(50), nullable=True)
+    constructeur = db.Column(db.String(100), nullable=True)
+    emplacement = db.Column(db.String(150), nullable=True)
+    description = db.Column(db.String(500), nullable=True)
+    id_projet = db.Column(db.Integer, db.ForeignKey('projets.id'), nullable=False)
+
+    projet = db.relationship('Projet', backref='equipements')

@@ -10,7 +10,7 @@ def create_app():
 
     db.init_app(app)
 
-    from app.models import Utilisateur, Projet
+    from app.models import Utilisateur, Projet, Equipement
 
     with app.app_context():
         db.create_all()
@@ -119,4 +119,81 @@ def create_app():
         db.session.delete(projet)
         db.session.commit()
         return redirect(url_for('projets'))
+    @app.route('/projets/<int:id_projet>/equipements')
+    def equipements_projet(id_projet):
+        if 'utilisateur_id' not in session:
+            return redirect(url_for('login'))
+
+        projet = Projet.query.get_or_404(id_projet)
+
+        if projet.id_utilisateur != session['utilisateur_id']:
+            return redirect(url_for('projets'))
+
+        liste_equipements = Equipement.query.filter_by(id_projet=id_projet).all()
+
+        return render_template('equipements.html', projet=projet, equipements=liste_equipements)
+    @app.route('/projets/<int:id_projet>/equipements/nouveau', methods=['GET', 'POST'])
+    def nouvel_equipement(id_projet):
+        if 'utilisateur_id' not in session:
+            return redirect(url_for('login'))
+
+        projet = Projet.query.get_or_404(id_projet)
+
+        if projet.id_utilisateur != session['utilisateur_id']:
+            return redirect(url_for('projets'))
+
+        if request.method == 'POST':
+            nouveau = Equipement(
+                nom=request.form.get('nom'),
+                type=request.form.get('type'),
+                adresse_ip=request.form.get('adresse_ip'),
+                adresse_mac=request.form.get('adresse_mac'),
+                constructeur=request.form.get('constructeur'),
+                emplacement=request.form.get('emplacement'),
+                description=request.form.get('description'),
+                id_projet=id_projet
+            )
+            db.session.add(nouveau)
+            db.session.commit()
+            return redirect(url_for('equipements_projet', id_projet=id_projet))
+
+        return render_template('nouvel_equipement.html', id_projet=id_projet, equipement=None)
+
+    @app.route('/equipements/<int:id>/modifier', methods=['GET', 'POST'])
+    def modifier_equipement(id):
+        if 'utilisateur_id' not in session:
+            return redirect(url_for('login'))
+
+        equipement = Equipement.query.get_or_404(id)
+
+        if equipement.projet.id_utilisateur != session['utilisateur_id']:
+            return redirect(url_for('projets'))
+
+        if request.method == 'POST':
+            equipement.nom = request.form.get('nom')
+            equipement.type = request.form.get('type')
+            equipement.adresse_ip = request.form.get('adresse_ip')
+            equipement.adresse_mac = request.form.get('adresse_mac')
+            equipement.constructeur = request.form.get('constructeur')
+            equipement.emplacement = request.form.get('emplacement')
+            equipement.description = request.form.get('description')
+            db.session.commit()
+            return redirect(url_for('equipements_projet', id_projet=equipement.id_projet))
+
+        return render_template('nouvel_equipement.html', id_projet=equipement.id_projet, equipement=equipement)
+
+    @app.route('/equipements/<int:id>/supprimer', methods=['POST'])
+    def supprimer_equipement(id):
+        if 'utilisateur_id' not in session:
+            return redirect(url_for('login'))
+
+        equipement = Equipement.query.get_or_404(id)
+
+        if equipement.projet.id_utilisateur != session['utilisateur_id']:
+            return redirect(url_for('projets'))
+
+        id_projet = equipement.id_projet
+        db.session.delete(equipement)
+        db.session.commit()
+        return redirect(url_for('equipements_projet', id_projet=id_projet))
     return app

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>NetDiag - Équipements</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="page-container">
+        <div class="topbar">
+            <h1>Équipements — {{ projet.nom }}</h1>
+            <a href="{{ url_for('logout') }}">Déconnexion</a>
+        </div>
+
+        <p><a href="{{ url_for('projets') }}">← Retour à mes projets</a></p>
+
+        <a href="{{ url_for('nouvel_equipement', id_projet=projet.id) }}" class="btn-nouveau">+ Ajouter un équipement</a>
+
+        <div class="liste-projets">
+            {% if equipements %}
+                {% for eq in equipements %}
+                    <div class="carte-projet">
+                        <h3>{{ eq.nom }} <span style="font-weight:normal; color:#777;">({{ eq.type }})</span></h3>
+                        <p>IP : {{ eq.adresse_ip }} — MAC : {{ eq.adresse_mac }}</p>
+                        <p>{{ eq.constructeur }} — {{ eq.emplacement }}</p>
+                        <a href="{{ url_for('modifier_equipement', id=eq.id) }}">Modifier</a>
+                        &nbsp;|&nbsp;
+                        <form method="POST" action="{{ url_for('supprimer_equipement', id=eq.id) }}" style="display:inline;" onsubmit="return confirm('Supprimer cet équipement ?');">
+                            <button type="submit" class="lien-danger">Supprimer</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Aucun équipement pour ce projet. Ajoutez-en un pour commencer.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</body>
+</html>

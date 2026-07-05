@@ -21,6 +21,8 @@
                     <div class="carte-projet">
                         <h3>{{ projet.nom }}</h3>
                         <p>{{ projet.description }}</p>
+                        <a href="{{ url_for('equipements_projet', id_projet=projet.id) }}">Voir les équipements</a>
+                        &nbsp;|&nbsp;
                         <a href="{{ url_for('modifier_projet', id=projet.id) }}">Modifier</a>
                         &nbsp;|&nbsp;
                         <form method="POST" action="{{ url_for('supprimer_projet', id=projet.id) }}" style="display:inline;" onsubmit="return confirm('Supprimer ce projet ?');">
