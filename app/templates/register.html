@@ -2,8 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>NetDiag - Connexion</title>
-    <!-- On relie le fichier CSS qu'on va créer juste après -->
+    <title>NetDiag - Inscription</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -11,20 +10,28 @@
     <div class="login-container">
         <h1>NetDiag</h1>
 
-        <!-- Le formulaire de connexion -->
-        <form method="POST" action="/login">
-            
+        {% if erreur %}
+            <p style="color: red;">{{ erreur }}</p>
+        {% endif %}
+
+        <form method="POST" action="/register">
+
+            <label for="nom">Nom</label>
+            <input type="text" id="nom" name="nom" required>
+
             <label for="email">Email</label>
             <input type="email" id="email" name="email" required>
 
             <label for="password">Mot de passe</label>
             <input type="password" id="password" name="password" required>
 
-            <button type="submit">Se connecter</button>
+            <button type="submit">Créer mon compte</button>
         </form>
+
         <p style="text-align:center; margin-top:15px;">
-            <a href="{{ url_for('register') }}">Pas encore de compte ? S'inscrire</a>
+            <a href="{{ url_for('login') }}">Déjà un compte ? Se connecter</a>
         </p>
+
     </div>
 
 </body>
