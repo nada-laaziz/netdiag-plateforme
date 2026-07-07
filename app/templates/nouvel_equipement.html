@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>NetDiag - {{ 'Modifier' if equipement else 'Nouvel' }} équipement</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="page-container">
+        <div class="topbar">
+            <h1>{{ 'Modifier l\'équipement' if equipement else 'Nouvel équipement' }}</h1>
+            <a href="{{ url_for('logout') }}">Déconnexion</a>
+        </div>
+
+        <form method="POST" class="form-projet">
+
+            <label for="nom">Nom</label>
+            <input type="text" id="nom" name="nom" value="{{ equipement.nom if equipement else '' }}" required>
+
+            <label for="type">Type</label>
+            <input type="text" id="type" name="type" value="{{ equipement.type if equipement else '' }}" placeholder="routeur, switch, PC...">
+
+            <label for="adresse_ip">Adresse IP</label>
+            <input type="text" id="adresse_ip" name="adresse_ip" value="{{ equipement.adresse_ip if equipement else '' }}">
+
+            <label for="adresse_mac">Adresse MAC</label>
+            <input type="text" id="adresse_mac" name="adresse_mac" value="{{ equipement.adresse_mac if equipement else '' }}">
+
+            <label for="constructeur">Constructeur</label>
+            <input type="text" id="constructeur" name="constructeur" value="{{ equipement.constructeur if equipement else '' }}">
+
+            <label for="emplacement">Emplacement</label>
+            <input type="text" id="emplacement" name="emplacement" value="{{ equipement.emplacement if equipement else '' }}">
+
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3">{{ equipement.description if equipement else '' }}</textarea>
+
+            <button type="submit">{{ 'Enregistrer les modifications' if equipement else 'Ajouter l\'équipement' }}</button>
+        </form>
+
+        <p style="margin-top:15px;">
+            <a href="{{ url_for('equipements_projet', id_projet=id_projet) }}">← Retour aux équipements</a>
+        </p>
+    </div>
+
+</body>
+</html>

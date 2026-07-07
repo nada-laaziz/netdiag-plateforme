@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>NetDiag - {{ 'Modifier' if projet else 'Nouveau' }} projet</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="page-container">
+        <div class="topbar">
+            <h1>{{ 'Modifier le projet' if projet else 'Nouveau projet' }}</h1>
+            <a href="{{ url_for('logout') }}">Déconnexion</a>
+        </div>
+
+        <form method="POST" class="form-projet">
+
+            <label for="nom">Nom du projet</label>
+            <input type="text" id="nom" name="nom" value="{{ projet.nom if projet else '' }}" required>
+
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="4">{{ projet.description if projet else '' }}</textarea>
+
+            <button type="submit">{{ 'Enregistrer les modifications' if projet else 'Créer le projet' }}</button>
+        </form>
+
+        <p style="margin-top:15px;">
+            <a href="{{ url_for('projets') }}">← Retour à mes projets</a>
+        </p>
+    </div>
+
+</body>
+</html>

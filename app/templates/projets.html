@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>NetDiag - Mes projets</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="page-container">
+        <div class="topbar">
+            <h1>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+                Mes projets
+            </h1>
+            <a href="{{ url_for('logout') }}">Déconnexion</a>
+        </div>
+
+        <a href="{{ url_for('nouveau_projet') }}" class="btn-nouveau">+ Nouveau projet</a>
+
+        <div class="liste-projets">
+            {% if projets %}
+                {% for projet in projets %}
+                   <div class="carte-projet">
+                        <h3>{{ projet.nom }}</h3>
+                        <p>{{ projet.description }}</p>
+                        <div class="actions-carte">
+                            <a href="{{ url_for('equipements_projet', id_projet=projet.id) }}" class="btn-action btn-action-primaire">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></svg>
+                                Voir les équipements
+                            </a>
+                            <a href="{{ url_for('modifier_projet', id=projet.id) }}" class="btn-action btn-action-secondaire">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                Modifier
+                            </a>
+                            <form method="POST" action="{{ url_for('supprimer_projet', id=projet.id) }}" onsubmit="return confirm('Supprimer ce projet ?');">
+                                <button type="submit" class="btn-action btn-action-danger">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                    Supprimer
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Vous n'avez encore aucun projet. Créez-en un pour commencer.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</body>
+</html>

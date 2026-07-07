@@ -1,0 +1,428 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --couleur-fond: #f5f7fa;
+    --couleur-carte: #ffffff;
+    --couleur-accent: #3b82f6;
+    --couleur-accent-fonce: #2563eb;
+    --couleur-titre: #1e293b;
+    --couleur-texte: #475569;
+    --couleur-danger: #ef4444;
+    --couleur-bordure: #e2e8f0;
+    --ombre: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', Arial, sans-serif;
+    color: var(--couleur-texte);
+    margin: 0;
+    line-height: 1.5;
+    min-height: 100vh;
+    background-color: #eef2f9;
+    background-image:
+        radial-gradient(circle at 1px 1px, #cbd8ee 1px, transparent 0),
+        linear-gradient(180deg, #eaf1fc 0%, #eef2f9 400px);
+    background-size: 26px 26px, 100% 100%;
+}
+
+/* --- Page de connexion / inscription --- */
+
+body:has(.login-container) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-container {
+    background-color: var(--couleur-carte);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: var(--ombre);
+    width: 320px;
+    border: 1px solid var(--couleur-bordure);
+}
+
+.login-container h1 {
+    text-align: center;
+    color: var(--couleur-titre);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 24px;
+}
+
+.login-container label {
+    display: block;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--couleur-texte);
+}
+
+.login-container input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--couleur-bordure);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color 0.15s;
+}
+
+.login-container input:focus {
+    outline: none;
+    border-color: var(--couleur-accent);
+}
+
+.login-container button {
+    width: 100%;
+    margin-top: 24px;
+    padding: 11px;
+    background-color: var(--couleur-accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.login-container button:hover {
+    background-color: var(--couleur-accent-fonce);
+}
+
+.login-container a {
+    color: var(--couleur-accent);
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.login-container a:hover {
+    text-decoration: underline;
+}
+
+/* --- Pages générales (projets, équipements, topologie) --- */
+
+.page-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--couleur-bordure);
+}
+
+.topbar h1 {
+    color: var(--couleur-titre);
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.topbar a {
+    color: var(--couleur-texte);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 6px;
+    transition: background-color 0.15s;
+}
+
+.topbar a:hover {
+    background-color: var(--couleur-bordure);
+}
+
+.btn-nouveau {
+    display: inline-block;
+    background-color: var(--couleur-accent);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 24px;
+    transition: background-color 0.15s;
+}
+
+.btn-nouveau:hover {
+    background-color: var(--couleur-accent-fonce);
+}
+
+.carte-projet {
+    background-color: var(--couleur-carte);
+    border: 1px solid var(--couleur-bordure);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    box-shadow: var(--ombre);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.carte-projet:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.carte-projet h3 {
+    margin: 0 0 6px 0;
+    color: var(--couleur-titre);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.carte-projet p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: var(--couleur-texte);
+}
+
+.carte-projet a {
+    color: var(--couleur-accent);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.carte-projet a:hover {
+    text-decoration: underline;
+}
+
+.lien-danger {
+    background: none;
+    border: none;
+    color: var(--couleur-danger);
+    cursor: pointer;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+}
+
+.lien-danger:hover {
+    text-decoration: underline;
+}
+
+/* --- Formulaires (nouveau projet, équipement) --- */
+
+.form-projet {
+    background-color: var(--couleur-carte);
+    border: 1px solid var(--couleur-bordure);
+    border-radius: 12px;
+    padding: 28px;
+    max-width: 440px;
+    box-shadow: var(--ombre);
+}
+
+.form-projet label {
+    display: block;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--couleur-texte);
+}
+
+.form-projet input,
+.form-projet textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--couleur-bordure);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color 0.15s;
+}
+
+.form-projet input:focus,
+.form-projet textarea:focus {
+    outline: none;
+    border-color: var(--couleur-accent);
+}
+
+.form-projet button {
+    margin-top: 20px;
+    padding: 11px 22px;
+    background-color: var(--couleur-accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.form-projet button:hover {
+    background-color: var(--couleur-accent-fonce);
+}
+/* --- Animations --- */
+
+@keyframes apparition {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.page-container,
+.login-container {
+    animation: apparition 0.4s ease-out;
+}
+
+.carte-projet {
+    animation: apparition 0.35s ease-out backwards;
+}
+
+.carte-projet:nth-child(1) { animation-delay: 0.03s; }
+.carte-projet:nth-child(2) { animation-delay: 0.08s; }
+.carte-projet:nth-child(3) { animation-delay: 0.13s; }
+.carte-projet:nth-child(4) { animation-delay: 0.18s; }
+.carte-projet:nth-child(5) { animation-delay: 0.23s; }
+.carte-projet:nth-child(n+6) { animation-delay: 0.28s; }
+
+.carte-projet {
+    transform: translateY(0);
+    transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
+}
+
+.carte-projet:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+}
+
+.btn-nouveau,
+.login-container button,
+.form-projet button {
+    transform: scale(1);
+    transition: transform 0.1s ease-out, background-color 0.15s;
+}
+
+.btn-nouveau:active,
+.login-container button:active,
+.form-projet button:active {
+    transform: scale(0.97);
+}
+
+.form-projet input:focus,
+.form-projet textarea:focus,
+.login-container input:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+/* --- Titres plus impactants --- */
+
+.login-container h1 {
+    font-size: 34px !important;
+}
+
+.topbar h1 {
+    font-size: 30px !important;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.topbar h1 svg {
+    flex-shrink: 0;
+}
+
+/* --- Illustration réseau (page de connexion) --- */
+
+.hero-illustration {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+@keyframes pulse-node {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.hero-illustration circle.noeud {
+    animation: pulse-node 2.4s ease-in-out infinite;
+}
+
+.hero-illustration circle.noeud:nth-child(2) { animation-delay: 0.3s; }
+.hero-illustration circle.noeud:nth-child(3) { animation-delay: 0.6s; }
+.hero-illustration circle.noeud:nth-child(4) { animation-delay: 0.9s; }
+/* --- Boutons d'action dans les cartes --- */
+
+.actions-carte {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.actions-carte form {
+    margin: 0;
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 13px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.12s ease-out, box-shadow 0.15s, background-color 0.15s;
+}
+
+.btn-action:active {
+    transform: scale(0.96);
+}
+
+.btn-action-primaire {
+    background-color: var(--couleur-accent);
+    color: white;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
+}
+
+.btn-action-primaire:hover {
+    background-color: var(--couleur-accent-fonce);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.45);
+}
+
+.btn-action-secondaire {
+    background-color: #eef2f9;
+    color: var(--couleur-titre);
+    border: 1px solid var(--couleur-bordure);
+}
+
+.btn-action-secondaire:hover {
+    background-color: #e2e8f0;
+}
+
+.btn-action-danger {
+    background-color: #fef2f2;
+    color: var(--couleur-danger);
+    border: 1px solid #fecaca;
+}
+
+.btn-action-danger:hover {
+    background-color: #fee2e2;
+}
