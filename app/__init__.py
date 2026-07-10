@@ -1,3 +1,6 @@
+import os
+from werkzeug.utils import secure_filename
+from app.analyse_reseau.pcap_reader import analyser_pcap
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 import math
@@ -10,8 +13,10 @@ def create_app():
     app.config['SECRET_KEY'] = 'a-changer-plus-tard'
 
     db.init_app(app)
+    app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads')
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-    from app.models import Utilisateur, Projet, Equipement
+    from app.models import Utilisateur, Projet, Equipement, Capture, Diagnostic
 
     with app.app_context():
         db.create_all()
@@ -225,4 +230,45 @@ def create_app():
             })
 
         return render_template('topologie.html', projet=projet, equipements_positions=equipements_positions)
+    @app.route('/projets/<int:id_projet>/analyse', methods=['GET', 'POST'])
+    def analyse_projet(id_projet):
+        if 'utilisateur_id' not in session:
+            return redirect(url_for('login'))
+
+        projet = Projet.query.get_or_404(id_projet)
+
+        if projet.id_utilisateur != session['utilisateur_id']:
+            return redirect(url_for('projets'))
+
+        resultats = None
+
+        if request.method == 'POST':
+            fichier = request.files.get('fichier_pcap')
+
+            if fichier and fichier.filename != '':
+                nom_fichier = secure_filename(fichier.filename)
+                chemin = os.path.join(app.config['UPLOAD_FOLDER'], nom_fichier)
+                fichier.save(chemin)
+
+                resultats = analyser_pcap(chemin)
+
+                nouvelle_capture = Capture(
+                    nom_fichier=nom_fichier,
+                    nb_paquets=resultats['nombre_paquets'],
+                    id_projet=id_projet
+                )
+                db.session.add(nouvelle_capture)
+                db.session.commit()
+
+                for alerte in resultats['alertes']:
+                    diagnostic = Diagnostic(
+                        niveau=alerte['niveau'],
+                        titre=alerte['titre'],
+                        description=alerte['description'],
+                        id_capture=nouvelle_capture.id
+                    )
+                    db.session.add(diagnostic)
+                db.session.commit()
+
+        return render_template('analyse.html', projet=projet, resultats=resultats)
     return app

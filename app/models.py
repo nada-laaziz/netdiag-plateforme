@@ -39,3 +39,25 @@ class Equipement(db.Model):
     id_projet = db.Column(db.Integer, db.ForeignKey('projets.id'), nullable=False)
 
     projet = db.relationship('Projet', backref='equipements')
+class Capture(db.Model):
+    __tablename__ = 'captures'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nom_fichier = db.Column(db.String(200), nullable=False)
+    date_import = db.Column(db.DateTime, default=datetime.utcnow)
+    nb_paquets = db.Column(db.Integer, default=0)
+    id_projet = db.Column(db.Integer, db.ForeignKey('projets.id'), nullable=False)
+
+    projet = db.relationship('Projet', backref='captures')
+
+
+class Diagnostic(db.Model):
+    __tablename__ = 'diagnostics'
+
+    id = db.Column(db.Integer, primary_key=True)
+    niveau = db.Column(db.String(30))
+    titre = db.Column(db.String(200))
+    description = db.Column(db.String(500))
+    id_capture = db.Column(db.Integer, db.ForeignKey('captures.id'), nullable=False)
+
+    capture = db.relationship('Capture', backref='diagnostics')
