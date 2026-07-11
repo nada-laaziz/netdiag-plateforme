@@ -60,7 +60,13 @@
             {% else %}
                 <p>Aucune anomalie détectée sur cette capture.</p>
             {% endif %}
-
+            {% if id_capture %}
+            <div style="margin: 20px 0;">
+                <a href="{{ url_for('telecharger_rapport', id_projet=projet.id, id_capture=id_capture) }}" class="btn-nouveau">
+                    Télécharger le rapport PDF
+                </a>
+            </div>
+            {% endif %}
         </div>
 
         {% endif %}

@@ -1,9 +1,10 @@
 import os
 from werkzeug.utils import secure_filename
 from app.analyse_reseau.pcap_reader import analyser_pcap
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, send_file
 from flask_sqlalchemy import SQLAlchemy
 import math
+from app.rapport_pdf.generer_pdf import generer_pdf
 
 db = SQLAlchemy()
 
@@ -241,6 +242,7 @@ def create_app():
             return redirect(url_for('projets'))
 
         resultats = None
+        id_derniere_capture = None
 
         if request.method == 'POST':
             fichier = request.files.get('fichier_pcap')
@@ -270,5 +272,30 @@ def create_app():
                     db.session.add(diagnostic)
                 db.session.commit()
 
-        return render_template('analyse.html', projet=projet, resultats=resultats)
+                id_derniere_capture = nouvelle_capture.id
+
+        return render_template('analyse.html', projet=projet, resultats=resultats, id_capture=id_derniere_capture)
+    @app.route('/projets/<int:id_projet>/rapport/<int:id_capture>')
+    def telecharger_rapport(id_projet, id_capture):
+        if 'utilisateur_id' not in session:
+            return redirect(url_for('login'))
+
+        projet = Projet.query.get_or_404(id_projet)
+
+        if projet.id_utilisateur != session['utilisateur_id']:
+            return redirect(url_for('projets'))
+
+        capture = Capture.query.get_or_404(id_capture)
+
+        if capture.id_projet != projet.id:
+            return redirect(url_for('projets'))
+
+        chemin_pcap = os.path.join(app.config['UPLOAD_FOLDER'], capture.nom_fichier)
+        resultats = analyser_pcap(chemin_pcap)
+
+        nom_pdf = f"rapport_{projet.id}_{capture.id}.pdf"
+        chemin_pdf = os.path.join(app.config['UPLOAD_FOLDER'], nom_pdf)
+        generer_pdf(resultats, chemin_pdf)
+
+        return send_file(chemin_pdf, as_attachment=True, download_name=f"rapport_netdiag_{projet.nom}.pdf")
     return app
