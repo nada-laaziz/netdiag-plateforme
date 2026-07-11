@@ -329,58 +329,24 @@
                             </thead>
 
                             <tbody>
-                            {% for conversation in resultats.get('top_conversations', []) %}
+{% for conversation in resultats.get('top_conversations', []) %}
+    <tr>
+        <td>{{ loop.index }}</td>
 
-                                <tr>
-                                    <td>{{ loop.index }}</td>
+        <td>
+            {{ conversation.get('ip_1', '-') }}
+        </td>
 
-                                    {% if conversation is mapping %}
-                                        <td>
-                                            {{ conversation.get(
-                                                'ip_source',
-                                                conversation.get('source', '-')
-                                            ) }}
-                                        </td>
+        <td>
+            {{ conversation.get('ip_2', '-') }}
+        </td>
 
-                                        <td>
-                                            {{ conversation.get(
-                                                'ip_destination',
-                                                conversation.get('destination', '-')
-                                            ) }}
-                                        </td>
-
-                                        <td>
-                                            {{ conversation.get(
-                                                'nombre',
-                                                conversation.get(
-                                                    'paquets',
-                                                    conversation.get('count', '-')
-                                                )
-                                            ) }}
-                                        </td>
-                                    {% else %}
-                                        <td>
-                                            {{ conversation[0]
-                                               if conversation|length > 0
-                                               else '-' }}
-                                        </td>
-
-                                        <td>
-                                            {{ conversation[1]
-                                               if conversation|length > 1
-                                               else '-' }}
-                                        </td>
-
-                                        <td>
-                                            {{ conversation[2]
-                                               if conversation|length > 2
-                                               else '-' }}
-                                        </td>
-                                    {% endif %}
-                                </tr>
-
-                            {% endfor %}
-                            </tbody>
+        <td>
+            {{ conversation.get('paquets', 0) }}
+        </td>
+    </tr>
+{% endfor %}
+</tbody>
                         </table>
                     </div>
 
