@@ -48,23 +48,41 @@ def generer_recommandations(alertes):
     recommandations = []
 
     for alerte in alertes:
-        titre = alerte.get("titre", "")
+        titre = alerte.get("titre", "").lower()
 
-        if "HTTP" in titre:
-            recommandations.append("Privilégier HTTPS et limiter les flux non chiffrés.")
+        if "http" in titre:
+            recommandations.append(
+                "Privilégier HTTPS et limiter les flux non chiffrés."
+            )
+
         elif "beaucoup de machines" in titre:
-            recommandations.append("Vérifier la machine qui communique avec beaucoup d'hôtes.")
+            recommandations.append(
+                "Vérifier la machine qui communique avec beaucoup d'hôtes."
+            )
+
         elif "dominante" in titre:
-            recommandations.append("Surveiller la conversation réseau dominante.")
+            recommandations.append(
+                "Surveiller la conversation réseau dominante."
+            )
+
         elif "scan de ports" in titre:
-            recommandations.append("Contrôler les ports ouverts sur la machine suspecte.")
-        elif "SYN Flood" in titre:
-            recommandations.append("Vérifier les connexions TCP et les protections anti-DDoS.")
+            recommandations.append(
+                "Contrôler les ports ouverts sur la machine suspecte."
+            )
 
-    if not recommandations:
-        recommandations.append("Aucune action urgente. Continuer la surveillance du réseau.")
+        elif "syn flood" in titre:
+            recommandations.append(
+                "Vérifier les connexions TCP et les protections anti-DDoS."
+            )
 
-    return recommandations[:5]
+    recommandations_uniques = list(dict.fromkeys(recommandations))
+
+    if not recommandations_uniques:
+        recommandations_uniques.append(
+            "Aucune action urgente. Continuer la surveillance du réseau."
+        )
+
+    return recommandations_uniques[:5]
 
 
 def generer_pdf(resultats, chemin_pdf):
