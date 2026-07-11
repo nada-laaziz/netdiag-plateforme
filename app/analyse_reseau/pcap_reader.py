@@ -4,11 +4,22 @@ from scapy.layers.l2 import ARP
 
 from .protocoles import service_depuis_port
 from .regles_diagnostic import generer_alertes
-from app.analyseurs.syn_flood import analyser_syn_flood
 
+from app.analyseurs.syn_flood import analyser_syn_flood
+from app.analyseurs.statistiques import generer_statistiques
+from app.analyseurs.dns import analyser_dns
+from app.analyseurs.icmp import analyser_icmp
+from app.analyseurs.scan_ports import analyser_scan_ports
+from app.analyseurs.conversations import analyser_conversations
+from app.analyseurs.diagnostic import generer_diagnostic_final
 
 def analyser_pcap(chemin_fichier):
     paquets = rdpcap(chemin_fichier)
+
+    dns = analyser_dns(paquets)
+    icmp = analyser_icmp(paquets)
+    syn_flood = analyser_syn_flood(paquets)
+    top_conversations = analyser_conversations(paquets)
 
     protocoles = {
         "HTTP": 0,
@@ -42,8 +53,6 @@ def analyser_pcap(chemin_fichier):
     communications = []
     ports_par_ip = {}
     destinations_par_ip = {}
-
-    syn_flood = analyser_syn_flood(paquets)
 
     for paquet in paquets:
         service = "Inconnu"
@@ -132,9 +141,16 @@ def analyser_pcap(chemin_fichier):
         "communications": communications,
         "ports_par_ip": ports_par_ip,
         "destinations_par_ip": destinations_par_ip,
-        "syn_flood": syn_flood
+        "syn_flood": syn_flood,
+        "dns": dns,
+        "icmp": icmp,
+        "top_conversations": top_conversations,
     }
 
+    resultats["scan_ports"] = analyser_scan_ports(resultats)
+    resultats["statistiques"] = generer_statistiques(resultats)
     resultats["alertes"] = generer_alertes(resultats)
+    resultats["diagnostic_final"] = generer_diagnostic_final(resultats)
+
 
     return resultats

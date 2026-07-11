@@ -68,21 +68,6 @@ if top_talkers:
 else:
     print("Aucun Top Talker détecté.")
 
-print("\nSCAN DE PORTS")
-
-ports_par_ip = resultat.get("ports_par_ip", {})
-
-top_ports = sorted(
-    ports_par_ip.items(),
-    key=lambda x: len(x[1]),
-    reverse=True
-)[:5]
-
-if top_ports:
-    for ip, ports in top_ports:
-        print(f"{ip} : {len(ports)} ports différents contactés")
-else:
-    print("Aucune information sur les ports contactés.")
 
 print("\nTOP COMMUNICATIONS")
 
@@ -114,6 +99,60 @@ if syn_flood:
 else:
     print("Analyse SYN Flood non disponible.")
 
+print("\nANALYSE DNS")
+
+dns = resultat.get("dns", {})
+
+print(f"Nombre de paquets DNS : {dns.get('total_dns', 0)}")
+print(f"Nombre de requêtes DNS : {dns.get('requetes_dns', 0)}")
+
+if dns.get("top_domaines"):
+    print("\nTop domaines DNS")
+    for domaine, nombre in dns["top_domaines"]:
+        print(f"{domaine} : {nombre}")
+else:
+    print("Aucun domaine DNS détecté.")
+print("\nANALYSE ICMP")
+
+icmp = resultat.get("icmp", {})
+
+print(f"Nombre de paquets ICMP : {icmp.get('total_icmp', 0)}")
+
+if icmp.get("top_sources_icmp"):
+    print("\nTop sources ICMP")
+    for ip, nombre in icmp["top_sources_icmp"]:
+        print(f"{ip} : {nombre}")
+else:
+    print("Aucun trafic ICMP détecté.")
+
+print("\nSCAN DE PORTS")
+
+scan_ports = resultat.get("scan_ports", [])
+
+if scan_ports:
+    for scan in scan_ports:
+        print(
+            f"{scan['ip']} : scan suspect, "
+            f"{scan['nombre_ports']} ports contactés"
+        )
+        print(f"Ports : {scan['ports']}")
+else:
+    print("Aucun scan de ports suspect détecté.")
+
+print("\nTOP CONVERSATIONS")
+
+top_conversations = resultat.get("top_conversations", [])
+
+if top_conversations:
+    for conversation in top_conversations:
+        print(
+            f"{conversation['ip_1']} <-> {conversation['ip_2']} : "
+            f"{conversation['paquets']} paquets"
+        )
+else:
+    print("Aucune conversation détectée.")
+
+
 print("\nALERTES")
 
 if resultat["alertes"]:
@@ -125,3 +164,21 @@ if resultat["alertes"]:
             print(f"• {alerte}")
 else:
     print("Aucune alerte détectée.")
+
+
+print("\nDIAGNOSTIC FINAL")
+
+diagnostic = resultat.get("diagnostic_final", {})
+
+print(f"Score réseau : {diagnostic.get('score', 0)} / 100")
+print(f"Statut : {diagnostic.get('statut', 'Non disponible')}")
+print(f"Message : {diagnostic.get('message', 'Non disponible')}")
+print(f"Alertes moyennes : {diagnostic.get('alertes_moyennes', 0)}")
+print(f"Alertes élevées : {diagnostic.get('alertes_elevees', 0)}")
+print(f"Alertes critiques : {diagnostic.get('alertes_critiques', 0)}")
+
+from app.rapport_pdf.generer_pdf import generer_pdf
+
+generer_pdf(resultat, "rapport_netdiag.pdf")
+
+print("\nRapport PDF généré avec succès.")

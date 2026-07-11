@@ -1,13 +1,16 @@
 def generer_alertes(resultats):
     alertes = []
 
-    nombre_paquets = resultats["nombre_paquets"]
-    protocoles = resultats["protocoles"]
-    ip_sources = resultats["ip_sources"]
-    ip_destinations = resultats["ip_destinations"]
-    ports_par_ip = resultats.get("ports_par_ip", {})
+    nombre_paquets = resultats.get("nombre_paquets", 0)
+    protocoles = resultats.get("protocoles", {})
+    ip_sources = resultats.get("ip_sources", {})
+    ip_destinations = resultats.get("ip_destinations", {})
     destinations_par_ip = resultats.get("destinations_par_ip", {})
     syn_flood = resultats.get("syn_flood", {})
+    dns = resultats.get("dns", {})
+    icmp = resultats.get("icmp", {})
+    scan_ports = resultats.get("scan_ports", [])
+    top_conversations = resultats.get("top_conversations", [])
 
     if nombre_paquets == 0:
         return alertes
@@ -56,29 +59,6 @@ def generer_alertes(resultats):
                 "description": f"L'adresse IP {ip} reçoit {pourcentage:.2f}% du trafic total."
             })
 
-    if protocoles.get("ICMP", 0) > nombre_paquets * 0.20:
-        alertes.append({
-            "niveau": "Moyen",
-            "titre": "Trafic ICMP important",
-            "description": "Beaucoup de paquets ICMP peuvent indiquer un scan, un test réseau ou un problème de connectivité."
-        })
-
-    for ip, ports in ports_par_ip.items():
-        if len(ports) >= 20:
-            alertes.append({
-                "niveau": "Élevé",
-                "titre": "Possible scan de ports",
-                "description": f"L'adresse IP {ip} a tenté d'accéder à {len(ports)} ports différents."
-            })
-
-    for ip, destinations in destinations_par_ip.items():
-        if len(destinations) >= 20:
-            alertes.append({
-                "niveau": "Élevé",
-                "titre": "Communication avec beaucoup de machines",
-                "description": f"L'adresse IP {ip} a communiqué avec {len(destinations)} adresses IP différentes."
-            })
-
     if syn_flood.get("suspect"):
         alertes.append({
             "niveau": "Critique",
@@ -88,5 +68,62 @@ def generer_alertes(resultats):
                 f"{syn_flood.get('ack', 0)} paquets ACK."
             )
         })
+
+    if scan_ports:
+        for scan in scan_ports:
+            alertes.append({
+                "niveau": "Élevé",
+                "titre": "Possible scan de ports",
+                "description": (
+                    f"L'adresse IP {scan['ip']} a contacté "
+                    f"{scan['nombre_ports']} ports différents."
+                )
+            })
+
+    total_dns = dns.get("total_dns", 0)
+
+    if total_dns > nombre_paquets * 0.30:
+        alertes.append({
+            "niveau": "Moyen",
+            "titre": "Trafic DNS important",
+            "description": (
+                f"{total_dns} paquets DNS détectés. "
+                "Un volume DNS élevé peut indiquer beaucoup de navigation, "
+                "des requêtes répétées ou une activité inhabituelle."
+            )
+        })
+
+    total_icmp = icmp.get("total_icmp", 0)
+
+    if total_icmp > nombre_paquets * 0.20:
+        alertes.append({
+            "niveau": "Moyen",
+            "titre": "Trafic ICMP important",
+            "description": (
+                f"{total_icmp} paquets ICMP détectés. "
+                "Cela peut indiquer un test réseau, un scan ou un problème de connectivité."
+            )
+        })
+
+    for ip, destinations in destinations_par_ip.items():
+        if len(destinations) >= 20:
+            alertes.append({
+                "niveau": "Élevé",
+                "titre": "Communication avec beaucoup de machines",
+                "description": f"L'adresse IP {ip} a communiqué avec {len(destinations)} adresses IP différentes."
+            })
+
+    for conversation in top_conversations:
+        pourcentage = (conversation["paquets"] / nombre_paquets) * 100
+
+        if pourcentage > 40:
+            alertes.append({
+                "niveau": "Moyen",
+                "titre": "Conversation réseau dominante",
+                "description": (
+                    f"La communication entre {conversation['ip_1']} et "
+                    f"{conversation['ip_2']} représente {pourcentage:.2f}% du trafic."
+                )
+            })
 
     return alertes
