@@ -2,70 +2,713 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NetDiag - Analyse réseau</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
 
-    <div class="page-container">
-        <div class="topbar">
-            <h1>Analyse — {{ projet.nom }}</h1>
-            <a href="{{ url_for('logout') }}">Déconnexion</a>
+<body>
+<div class="page-container dashboard-container">
+
+    <div class="topbar dashboard-topbar">
+        <div>
+            <p class="dashboard-eyebrow">NETDIAG</p>
+            <h1>Analyse réseau</h1>
+            <p class="dashboard-subtitle">Projet : {{ projet.nom }}</p>
         </div>
 
-        <p><a href="{{ url_for('equipements_projet', id_projet=projet.id) }}">← Retour aux équipements</a></p>
+        <div class="dashboard-top-actions">
+            <a class="btn-action btn-action-secondaire"
+               href="{{ url_for('equipements_projet', id_projet=projet.id) }}">
+                Retour aux équipements
+            </a>
 
-        <form method="POST" enctype="multipart/form-data" class="form-projet">
-            <label for="fichier_pcap">Importer une capture (.pcap ou .pcapng)</label>
-            <input type="file" id="fichier_pcap" name="fichier_pcap" accept=".pcap,.pcapng" required>
-            <button type="submit">Analyser la capture</button>
+            <a class="btn-action btn-action-danger"
+               href="{{ url_for('logout') }}">
+                Déconnexion
+            </a>
+        </div>
+    </div>
+
+    <section class="dashboard-upload-card">
+        <div>
+            <p class="section-kicker">Nouvelle analyse</p>
+            <h2>Importer une capture réseau</h2>
+            <p>Formats acceptés : .pcap et .pcapng</p>
+        </div>
+
+        <form method="POST"
+              enctype="multipart/form-data"
+              class="dashboard-upload-form">
+
+            <label for="fichier_pcap" class="file-label">
+                <span>Sélectionner une capture</span>
+
+                <input type="file"
+                       id="fichier_pcap"
+                       name="fichier_pcap"
+                       accept=".pcap,.pcapng"
+                       required>
+            </label>
+
+            <button type="submit" class="dashboard-primary-button">
+                Analyser la capture
+            </button>
         </form>
+    </section>
 
-        {% if resultats %}
+    {% if resultats %}
 
-        <div style="margin-top:32px;">
+        {% set stats = resultats.get('statistiques', {}) %}
+        {% set syn = resultats.get('syn_flood', {}) %}
+        {% set dns = resultats.get('dns', {}) %}
+        {% set icmp = resultats.get('icmp', {}) %}
+        {% set scan = resultats.get('scan_ports', []) %}
+        {% set diagnostic = resultats.get('diagnostic_final', {}) %}
+        {% set total = resultats.get('nombre_paquets', 0) %}
 
-            <div class="actions-carte" style="margin-bottom:20px;">
-                <div class="carte-projet" style="flex:1; text-align:center;">
-                    <p style="font-size:13px; color:#777; margin:0;">Paquets analysés</p>
-                    <p style="font-size:24px; font-weight:700; color:var(--couleur-titre); margin:4px 0 0;">{{ resultats.nombre_paquets }}</p>
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Vue générale</p>
+                    <h2>Résumé de la capture</h2>
                 </div>
-                <div class="carte-projet" style="flex:1; text-align:center;">
-                    <p style="font-size:13px; color:#777; margin:0;">Alertes détectées</p>
-                    <p style="font-size:24px; font-weight:700; color:var(--couleur-titre); margin:4px 0 0;">{{ resultats.alertes|length }}</p>
+
+                {% if id_capture %}
+                    <a href="{{ url_for(
+                        'telecharger_rapport',
+                        id_projet=projet.id,
+                        id_capture=id_capture
+                    ) }}"
+                       class="dashboard-primary-button dashboard-download-button">
+                        Télécharger le rapport PDF
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="metric-grid">
+
+                <article class="metric-card">
+                    <span class="metric-label">Paquets analysés</span>
+                    <strong>{{ resultats.get('nombre_paquets', 0) }}</strong>
+                    <small>Volume total de la capture</small>
+                </article>
+
+                <article class="metric-card">
+                    <span class="metric-label">Alertes détectées</span>
+                    <strong>{{ resultats.get('alertes', [])|length }}</strong>
+                    <small>Anomalies et risques relevés</small>
+                </article>
+
+                <article class="metric-card">
+                    <span class="metric-label">IP sources</span>
+                    <strong>{{ resultats.get('ip_sources', {})|length }}</strong>
+                    <small>Émetteurs distincts</small>
+                </article>
+
+                <article class="metric-card">
+                    <span class="metric-label">IP destinations</span>
+                    <strong>{{ resultats.get('ip_destinations', {})|length }}</strong>
+                    <small>Destinations distinctes</small>
+                </article>
+
+                <article class="metric-card">
+                    <span class="metric-label">Protocole dominant</span>
+                    <strong>
+                        {{ stats.get(
+                            'protocole_dominant',
+                            stats.get('protocole_plus_utilise', 'Non disponible')
+                        ) }}
+                    </strong>
+                    <small>
+                        {{ stats.get(
+                            'nombre_protocole_dominant',
+                            stats.get('nb_protocole_dominant', '')
+                        ) }}
+                    </small>
+                </article>
+
+                <article class="metric-card">
+                    <span class="metric-label">IP source dominante</span>
+                    <strong>
+                        {{ stats.get(
+                            'ip_source_dominante',
+                            stats.get('source_dominante', 'Non disponible')
+                        ) }}
+                    </strong>
+                    <small>
+                        {{ stats.get(
+                            'nombre_ip_source_dominante',
+                            stats.get('nb_source_dominante', '')
+                        ) }}
+                    </small>
+                </article>
+
+                <article class="metric-card">
+                    <span class="metric-label">IP destination dominante</span>
+                    <strong>
+                        {{ stats.get(
+                            'ip_destination_dominante',
+                            stats.get('destination_dominante', 'Non disponible')
+                        ) }}
+                    </strong>
+                    <small>
+                        {{ stats.get(
+                            'nombre_ip_destination_dominante',
+                            stats.get('nb_destination_dominante', '')
+                        ) }}
+                    </small>
+                </article>
+
+                <article class="metric-card">
+                    <span class="metric-label">Services détectés</span>
+                    <strong>{{ resultats.get('services', {})|length }}</strong>
+                    <small>Types de services distincts</small>
+                </article>
+
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Trafic</p>
+                    <h2>Répartition des protocoles</h2>
                 </div>
             </div>
 
-            <h3 style="color:var(--couleur-titre);">Répartition des protocoles</h3>
-            <div class="carte-projet">
-                {% for protocole, nombre in resultats.protocoles.items() %}
-                    {% if nombre > 0 %}
-                        <p style="margin:4px 0; font-size:14px;">
-                            <strong>{{ protocole }}</strong> — {{ nombre }} paquet(s)
+            <div class="dashboard-card">
+                <div class="protocol-list">
+
+                    {% for protocole, nombre in resultats.get('protocoles', {}).items() %}
+                        {% if nombre > 0 %}
+
+                            <div class="protocol-row">
+                                <div class="protocol-row-header">
+                                    <span>{{ protocole }}</span>
+                                    <strong>{{ nombre }} paquet(s)</strong>
+                                </div>
+
+                                <div class="progress-track">
+                                    <div class="progress-value"
+                                         style="width:
+                                         {{ ((nombre / total * 100) if total else 0)|round(1) }}%;">
+                                    </div>
+                                </div>
+
+                                <small>
+                                    {{ ((nombre / total * 100) if total else 0)|round(1) }}
+                                    % du trafic
+                                </small>
+                            </div>
+
+                        {% endif %}
+                    {% endfor %}
+
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Machines actives</p>
+                    <h2>Top des adresses IP</h2>
+                </div>
+            </div>
+
+            <div class="two-column-grid">
+
+                <article class="dashboard-card">
+                    <h3>Top 5 IP sources</h3>
+
+                    {% if top_sources %}
+                        <div class="ranking-list">
+
+                            {% for ip, nombre in top_sources %}
+                                <div class="ranking-row">
+                                    <span class="ranking-position">{{ loop.index }}</span>
+                                    <span class="ranking-name">{{ ip }}</span>
+                                    <strong>{{ nombre }}</strong>
+                                </div>
+                            {% endfor %}
+
+                        </div>
+                    {% else %}
+                        <p class="empty-message">
+                            Aucune IP source disponible.
                         </p>
                     {% endif %}
-                {% endfor %}
+                </article>
+
+                <article class="dashboard-card">
+                    <h3>Top 5 IP destinations</h3>
+
+                    {% if top_destinations %}
+                        <div class="ranking-list">
+
+                            {% for ip, nombre in top_destinations %}
+                                <div class="ranking-row">
+                                    <span class="ranking-position">{{ loop.index }}</span>
+                                    <span class="ranking-name">{{ ip }}</span>
+                                    <strong>{{ nombre }}</strong>
+                                </div>
+                            {% endfor %}
+
+                        </div>
+                    {% else %}
+                        <p class="empty-message">
+                            Aucune IP destination disponible.
+                        </p>
+                    {% endif %}
+                </article>
+
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Services</p>
+                    <h2>Services détectés</h2>
+                </div>
             </div>
 
-            <h3 style="color:var(--couleur-titre); margin-top:24px;">Diagnostic</h3>
+            <div class="dashboard-card">
+                {% if resultats.get('services') %}
 
-            {% if resultats.alertes %}
-                {% for alerte in resultats.alertes %}
-                    <div class="carte-alerte alerte-{{ alerte.niveau|lower }}">
-                        <span class="badge-niveau badge-{{ alerte.niveau|lower }}">{{ alerte.niveau }}</span>
-                        <p class="alerte-titre">{{ alerte.titre }}</p>
-                        <p class="alerte-description">{{ alerte.description }}</p>
+                    <div class="ranking-list">
+                        {% for service, nombre in
+                           resultats.get('services', {}).items()
+                           |sort(attribute='1', reverse=true) %}
+
+                            {% if nombre > 0 %}
+                                <div class="ranking-row">
+                                    <span class="ranking-position">
+                                        {{ loop.index }}
+                                    </span>
+                                    <span class="ranking-name">
+                                        {{ service }}
+                                    </span>
+                                    <strong>{{ nombre }}</strong>
+                                </div>
+                            {% endif %}
+
+                        {% endfor %}
                     </div>
-                {% endfor %}
-            {% else %}
-                <p>Aucune anomalie détectée sur cette capture.</p>
-            {% endif %}
 
-        </div>
+                {% else %}
+                    <p class="empty-message">
+                        Aucun service disponible.
+                    </p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Communications</p>
+                    <h2>Conversations réseau dominantes</h2>
+                </div>
+            </div>
+
+            <div class="dashboard-card table-card">
+
+                {% if resultats.get('top_conversations') %}
+
+                    <div class="responsive-table">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Source</th>
+                                <th>Destination</th>
+                                <th>Paquets</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            {% for conversation in resultats.get('top_conversations', []) %}
+
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+
+                                    {% if conversation is mapping %}
+                                        <td>
+                                            {{ conversation.get(
+                                                'ip_source',
+                                                conversation.get('source', '-')
+                                            ) }}
+                                        </td>
+
+                                        <td>
+                                            {{ conversation.get(
+                                                'ip_destination',
+                                                conversation.get('destination', '-')
+                                            ) }}
+                                        </td>
+
+                                        <td>
+                                            {{ conversation.get(
+                                                'nombre',
+                                                conversation.get(
+                                                    'paquets',
+                                                    conversation.get('count', '-')
+                                                )
+                                            ) }}
+                                        </td>
+                                    {% else %}
+                                        <td>
+                                            {{ conversation[0]
+                                               if conversation|length > 0
+                                               else '-' }}
+                                        </td>
+
+                                        <td>
+                                            {{ conversation[1]
+                                               if conversation|length > 1
+                                               else '-' }}
+                                        </td>
+
+                                        <td>
+                                            {{ conversation[2]
+                                               if conversation|length > 2
+                                               else '-' }}
+                                        </td>
+                                    {% endif %}
+                                </tr>
+
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                {% else %}
+                    <p class="empty-message">
+                        Aucune conversation disponible.
+                    </p>
+                {% endif %}
+
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Détection</p>
+                    <h2>Analyse de sécurité</h2>
+                </div>
+            </div>
+
+            <div class="security-grid">
+
+                <article class="dashboard-card security-card">
+                    <div class="security-card-title">
+                        <h3>SYN Flood</h3>
+
+                        {% if syn is mapping %}
+                            <span class="status-pill
+                                {{ 'status-danger'
+                                   if syn.get('suspect')
+                                   else 'status-ok' }}">
+                                {{ 'Suspect'
+                                   if syn.get('suspect')
+                                   else 'Normal' }}
+                            </span>
+                        {% else %}
+                            <span class="status-pill status-neutral">
+                                Analyse
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {% if syn %}
+                        <div class="detail-list">
+
+                            {% if syn is mapping %}
+                                {% for cle, valeur in syn.items() %}
+                                    <div>
+                                        <span>
+                                            {{ cle|replace('_', ' ')|capitalize }}
+                                        </span>
+                                        <strong>{{ valeur }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                {% for element in syn %}
+                                    <div>
+                                        <span>Résultat {{ loop.index }}</span>
+                                        <strong>{{ element }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+
+                        </div>
+                    {% else %}
+                        <p class="empty-message">
+                            Aucune donnée SYN Flood.
+                        </p>
+                    {% endif %}
+                </article>
+
+                <article class="dashboard-card security-card">
+                    <div class="security-card-title">
+                        <h3>Scan de ports</h3>
+
+                        <span class="status-pill
+                            {{ 'status-danger' if scan else 'status-ok' }}">
+                            {{ 'Détection' if scan else 'Normal' }}
+                        </span>
+                    </div>
+
+                    {% if scan %}
+                        <div class="detail-list">
+
+                            {% if scan is mapping %}
+
+                                {% for cle, valeur in scan.items() %}
+                                    <div>
+                                        <span>
+                                            {{ cle|replace('_', ' ')|capitalize }}
+                                        </span>
+                                        <strong>{{ valeur }}</strong>
+                                    </div>
+                                {% endfor %}
+
+                            {% else %}
+
+                                {% for element in scan %}
+
+                                    {% if element is mapping %}
+                                        {% for cle, valeur in element.items() %}
+                                            <div>
+                                                <span>
+                                                    {{ cle|replace('_', ' ')|capitalize }}
+                                                </span>
+                                                <strong>{{ valeur }}</strong>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div>
+                                            <span>Détection {{ loop.index }}</span>
+                                            <strong>{{ element }}</strong>
+                                        </div>
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            {% endif %}
+
+                        </div>
+                    {% else %}
+                        <p class="empty-message">
+                            Aucun scan de ports détecté.
+                        </p>
+                    {% endif %}
+                </article>
+
+                <article class="dashboard-card security-card">
+                    <div class="security-card-title">
+                        <h3>DNS</h3>
+                        <span class="status-pill status-neutral">
+                            Analyse
+                        </span>
+                    </div>
+
+                    {% if dns %}
+                        <div class="detail-list">
+
+                            {% if dns is mapping %}
+                                {% for cle, valeur in dns.items() %}
+                                    <div>
+                                        <span>
+                                            {{ cle|replace('_', ' ')|capitalize }}
+                                        </span>
+                                        <strong>{{ valeur }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                {% for element in dns %}
+                                    <div>
+                                        <span>Résultat {{ loop.index }}</span>
+                                        <strong>{{ element }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+
+                        </div>
+                    {% else %}
+                        <p class="empty-message">
+                            Aucune donnée DNS.
+                        </p>
+                    {% endif %}
+                </article>
+
+                <article class="dashboard-card security-card">
+                    <div class="security-card-title">
+                        <h3>ICMP</h3>
+                        <span class="status-pill status-neutral">
+                            Analyse
+                        </span>
+                    </div>
+
+                    {% if icmp %}
+                        <div class="detail-list">
+
+                            {% if icmp is mapping %}
+                                {% for cle, valeur in icmp.items() %}
+                                    <div>
+                                        <span>
+                                            {{ cle|replace('_', ' ')|capitalize }}
+                                        </span>
+                                        <strong>{{ valeur }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                {% for element in icmp %}
+                                    <div>
+                                        <span>Résultat {{ loop.index }}</span>
+                                        <strong>{{ element }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+
+                        </div>
+                    {% else %}
+                        <p class="empty-message">
+                            Aucune donnée ICMP.
+                        </p>
+                    {% endif %}
+                </article>
+
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Diagnostic</p>
+                    <h2>Alertes détectées</h2>
+                </div>
+            </div>
+
+            {% if resultats.get('alertes') %}
+
+                <div class="alerts-grid">
+
+                    {% for alerte in resultats.get('alertes', []) %}
+
+                        {% if alerte is mapping %}
+                            {% set niveau = alerte.get('niveau', 'Moyen')|lower %}
+
+                            <article class="dashboard-alert alert-{{ niveau }}">
+                                <div class="alert-header">
+                                    <span class="alert-level">
+                                        {{ alerte.get('niveau', 'Moyen') }}
+                                    </span>
+                                </div>
+
+                                <h3>
+                                    {{ alerte.get('titre', 'Alerte') }}
+                                </h3>
+
+                                <p>
+                                    {{ alerte.get('description', '') }}
+                                </p>
+                            </article>
+
+                        {% else %}
+                            <article class="dashboard-alert alert-moyen">
+                                <div class="alert-header">
+                                    <span class="alert-level">Moyen</span>
+                                </div>
+
+                                <h3>Alerte détectée</h3>
+                                <p>{{ alerte }}</p>
+                            </article>
+                        {% endif %}
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="dashboard-card success-card">
+                    <h3>Aucune anomalie détectée</h3>
+                    <p>
+                        La capture ne contient aucune alerte selon
+                        les règles actuelles.
+                    </p>
+                </div>
+
+            {% endif %}
+        </section>
+
+        {% if diagnostic %}
+
+            <section class="dashboard-section">
+                <div class="section-heading">
+                    <div>
+                        <p class="section-kicker">Synthèse</p>
+                        <h2>Diagnostic final</h2>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+
+                    {% if diagnostic is mapping %}
+
+                        <div class="detail-list">
+                            {% for cle, valeur in diagnostic.items() %}
+                                <div>
+                                    <span>
+                                        {{ cle|replace('_', ' ')|capitalize }}
+                                    </span>
+                                    <strong>{{ valeur }}</strong>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                    {% elif diagnostic is sequence
+                       and diagnostic is not string %}
+
+                        <div class="detail-list">
+                            {% for element in diagnostic %}
+
+                                {% if element is mapping %}
+                                    {% for cle, valeur in element.items() %}
+                                        <div>
+                                            <span>
+                                                {{ cle|replace('_', ' ')|capitalize }}
+                                            </span>
+                                            <strong>{{ valeur }}</strong>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div>
+                                        <span>Résultat {{ loop.index }}</span>
+                                        <strong>{{ element }}</strong>
+                                    </div>
+                                {% endif %}
+
+                            {% endfor %}
+                        </div>
+
+                    {% else %}
+
+                        <p>{{ diagnostic }}</p>
+
+                    {% endif %}
+
+                </div>
+            </section>
 
         {% endif %}
 
-    </div>
+    {% endif %}
 
+</div>
 </body>
 </html>

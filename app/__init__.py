@@ -1,9 +1,10 @@
 import os
 from werkzeug.utils import secure_filename
 from app.analyse_reseau.pcap_reader import analyser_pcap
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, send_file
 from flask_sqlalchemy import SQLAlchemy
 import math
+from app.rapport_pdf.generer_pdf import generer_pdf
 
 db = SQLAlchemy()
 
@@ -230,6 +231,7 @@ def create_app():
             })
 
         return render_template('topologie.html', projet=projet, equipements_positions=equipements_positions)
+
     @app.route('/projets/<int:id_projet>/analyse', methods=['GET', 'POST'])
     def analyse_projet(id_projet):
         if 'utilisateur_id' not in session:
@@ -241,6 +243,9 @@ def create_app():
             return redirect(url_for('projets'))
 
         resultats = None
+        id_derniere_capture = None
+        top_sources = []
+        top_destinations = []
 
         if request.method == 'POST':
             fichier = request.files.get('fichier_pcap')
@@ -252,6 +257,18 @@ def create_app():
 
                 resultats = analyser_pcap(chemin)
 
+                top_sources = sorted(
+                    resultats.get('ip_sources', {}).items(),
+                    key=lambda element: element[1],
+                    reverse=True
+                )[:5]
+
+                top_destinations = sorted(
+                    resultats.get('ip_destinations', {}).items(),
+                    key=lambda element: element[1],
+                    reverse=True
+                )[:5]
+
                 nouvelle_capture = Capture(
                     nom_fichier=nom_fichier,
                     nb_paquets=resultats['nombre_paquets'],
@@ -260,15 +277,47 @@ def create_app():
                 db.session.add(nouvelle_capture)
                 db.session.commit()
 
-                for alerte in resultats['alertes']:
+                for alerte in resultats.get('alertes', []):
                     diagnostic = Diagnostic(
-                        niveau=alerte['niveau'],
-                        titre=alerte['titre'],
-                        description=alerte['description'],
+                        niveau=alerte.get('niveau', 'Moyen'),
+                        titre=alerte.get('titre', 'Alerte'),
+                        description=alerte.get('description', ''),
                         id_capture=nouvelle_capture.id
                     )
                     db.session.add(diagnostic)
-                db.session.commit()
 
-        return render_template('analyse.html', projet=projet, resultats=resultats)
+                db.session.commit()
+                id_derniere_capture = nouvelle_capture.id
+
+        return render_template(
+            'analyse.html',
+            projet=projet,
+            resultats=resultats,
+            id_capture=id_derniere_capture,
+            top_sources=top_sources,
+            top_destinations=top_destinations
+        )
+    @app.route('/projets/<int:id_projet>/rapport/<int:id_capture>')
+    def telecharger_rapport(id_projet, id_capture):
+        if 'utilisateur_id' not in session:
+            return redirect(url_for('login'))
+
+        projet = Projet.query.get_or_404(id_projet)
+
+        if projet.id_utilisateur != session['utilisateur_id']:
+            return redirect(url_for('projets'))
+
+        capture = Capture.query.get_or_404(id_capture)
+
+        if capture.id_projet != projet.id:
+            return redirect(url_for('projets'))
+
+        chemin_pcap = os.path.join(app.config['UPLOAD_FOLDER'], capture.nom_fichier)
+        resultats = analyser_pcap(chemin_pcap)
+
+        nom_pdf = f"rapport_{projet.id}_{capture.id}.pdf"
+        chemin_pdf = os.path.join(app.config['UPLOAD_FOLDER'], nom_pdf)
+        generer_pdf(resultats, chemin_pdf)
+
+        return send_file(chemin_pdf, as_attachment=True, download_name=f"rapport_netdiag_{projet.nom}.pdf")
     return app
