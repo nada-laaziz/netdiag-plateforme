@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>NetDiag - Analyse réseau</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="page-container">
+        <div class="topbar">
+            <h1>Analyse — {{ projet.nom }}</h1>
+            <a href="{{ url_for('logout') }}">Déconnexion</a>
+        </div>
+
+        <p><a href="{{ url_for('equipements_projet', id_projet=projet.id) }}">← Retour aux équipements</a></p>
+
+        <form method="POST" enctype="multipart/form-data" class="form-projet">
+            <label for="fichier_pcap">Importer une capture (.pcap ou .pcapng)</label>
+            <input type="file" id="fichier_pcap" name="fichier_pcap" accept=".pcap,.pcapng" required>
+            <button type="submit">Analyser la capture</button>
+        </form>
+
+        {% if resultats %}
+
+        <div style="margin-top:32px;">
+
+            <div class="actions-carte" style="margin-bottom:20px;">
+                <div class="carte-projet" style="flex:1; text-align:center;">
+                    <p style="font-size:13px; color:#777; margin:0;">Paquets analysés</p>
+                    <p style="font-size:24px; font-weight:700; color:var(--couleur-titre); margin:4px 0 0;">{{ resultats.nombre_paquets }}</p>
+                </div>
+                <div class="carte-projet" style="flex:1; text-align:center;">
+                    <p style="font-size:13px; color:#777; margin:0;">Alertes détectées</p>
+                    <p style="font-size:24px; font-weight:700; color:var(--couleur-titre); margin:4px 0 0;">{{ resultats.alertes|length }}</p>
+                </div>
+            </div>
+
+            <h3 style="color:var(--couleur-titre);">Répartition des protocoles</h3>
+            <div class="carte-projet">
+                {% for protocole, nombre in resultats.protocoles.items() %}
+                    {% if nombre > 0 %}
+                        <p style="margin:4px 0; font-size:14px;">
+                            <strong>{{ protocole }}</strong> — {{ nombre }} paquet(s)
+                        </p>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <h3 style="color:var(--couleur-titre); margin-top:24px;">Diagnostic</h3>
+
+            {% if resultats.alertes %}
+                {% for alerte in resultats.alertes %}
+                    <div class="carte-alerte alerte-{{ alerte.niveau|lower }}">
+                        <span class="badge-niveau badge-{{ alerte.niveau|lower }}">{{ alerte.niveau }}</span>
+                        <p class="alerte-titre">{{ alerte.titre }}</p>
+                        <p class="alerte-description">{{ alerte.description }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Aucune anomalie détectée sur cette capture.</p>
+            {% endif %}
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</body>
+</html>
