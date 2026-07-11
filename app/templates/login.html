@@ -23,6 +23,9 @@
             </svg>
         </div>
         <h1>NetDiag</h1>
+        {% if erreur %}
+            <p style="color: red; text-align:center; font-size:14px;">{{ erreur }}</p>
+        {% endif %}
 
         <!-- Le formulaire de connexion -->
         <form method="POST" action="/login">
